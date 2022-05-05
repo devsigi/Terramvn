@@ -2,9 +2,9 @@ locals{
   worksc="${terraform.workspace}"
   
   env_list = {
-    default="dev_env"
-    dev="dev_env"
-    prod="prod_env"
+    default="dev_mvn"
+    dev="dev_mvn"
+    prod="prod_mvn"
   }
 
   xenv = "${lookup(local.env_list, local.worksc)}"

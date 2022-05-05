@@ -11,7 +11,7 @@ variable "subnetid" {}
 variable "amiid"{}
 variable "keyName"{}
 
-resource "aws_instance" "resec2jen" {
+resource "aws_instance" "resec2mvn" {
   ami           	= "${var.amiid}"
   instance_type 	= "t2.micro"
   availability_zone = "us-east-1a"
@@ -24,7 +24,7 @@ resource "aws_instance" "resec2jen" {
   connection {
     type = "ssh"
     user = "ec2-user"
-    private_key = file("Jenser.pem")
+    private_key = file("${var.keyName}")
     host = self.public_ip
   }
   
@@ -50,5 +50,5 @@ resource "aws_instance" "resec2jen" {
 }
 
 output "pubip"{
-	value = "${formatlist("http://%s:%s/", aws_instance.resec2jen.*.public_ip, "8080")}"
+	value = aws_instance.resec2mvn.*.public_ip
 }
