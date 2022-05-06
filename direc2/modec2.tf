@@ -18,16 +18,19 @@ resource "aws_instance" "resec2mvn" {
   key_name 		= var.keyName
   vpc_security_group_ids = ["${var.sgid}"] 
   subnet_id 		= var.subnetid
-  associate_public_ip_address = "true"
+  associate_public_ip_address = "false"
 
-  #user_data 		= file("userdata.sh")
-  connection {
-    type = "ssh"
+  user_data 		= file("userdata.sh")
+/*  connection {
+#    type = "ssh"
     user = "ec2-user"
     private_key = file("${var.keyName}")
-    host = self.public_ip
+#    host = self.public_ip
   }
-  
+  provisioner "local-exec" {
+  	command = "sleep 60; ssh -i ${var.keyName} ec2-user@${aws_instance.resec2mvn.private_ip} 'echo hello from $(hostname)'"
+}
+# upload chef cookbooks and repo content 
   # Copy in the bash script we want to execute.
   # The source is the location of the bash script
   # on the local linux box you are executing terraform
@@ -42,13 +45,9 @@ resource "aws_instance" "resec2mvn" {
       "chmod +x /tmp/userdata.sh",
       "sudo /tmp/userdata.sh",
     ]
-  }
+  } */  
 
   tags = {
     Name = "${module.modvars.env}_EC2"
   }
-}
-
-output "pubip"{
-	value = aws_instance.resec2mvn.*.public_ip
 }

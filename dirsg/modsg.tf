@@ -2,20 +2,24 @@ module "modvars"{
     source = "../dirvars"
 }
 
+variable vpcid{}
+#variable sgid{}
+variable subnetid{}
+
 /* variable "pubsubnets" {
   description = "Subnet CIDRs for public subnets (length must match configured availability_zones)"
   # this could be further simplified / computed using cidrsubnet() etc.
   # https://www.terraform.io/docs/configuration/interpolation.html#cidrsubnet-iprange-newbits-netnum-
   default = ["10.0.1.0/24", "10.0.3.0/24"]
   type = list
-} */
+} 
 
 variable "pvtsubnets" {
   description = "Subnet CIDRs for public subnets (length must match configured availability_zones)"
   # this could be further simplified / computed using cidrsubnet() etc.
   # https://www.terraform.io/docs/configuration/interpolation.html#cidrsubnet-iprange-newbits-netnum-
   default = ["10.0.2.0/24", "10.0.4.0/24"]
-  type = "list"
+  type = list
 } 
 
 variable "azs" {
@@ -29,7 +33,7 @@ resource "aws_subnet" "respvtsubs" {
 
 #  default_subnet="true"
 #  vpc_id = "${aws_vpc.resvpc.id}"
-  vpc_id = var.vpcid
+  vpc_id = "${var.vpcid}"
   cidr_block = "${var.pvtsubnets[count.index]}"
   availability_zone = "${var.azs[count.index]}"
   
@@ -39,40 +43,52 @@ resource "aws_subnet" "respvtsubs" {
   
 }
 
-resource "aws_nat_gateway" "resnat" {
-  connectivity_type = "private"
-  subnet_id         = var.subnetid
-#  subnet_id         = aws_subnet.respubsubs[0].id
+resource "aws_eip" "reseip" {
+  vpc = true
+  tags = {
+    Name = "${module.modvars.env}_eip"
+  }
 }
 
+resource "aws_nat_gateway" "resnat" {
+#  connectivity_type = "public"
+  allocation_id = aws_eip.reseip.id
+  subnet_id         = "${var.subnetid}"
+#  subnet_id         = aws_subnet.respubsubs[0].id
+  tags = {
+    Name = "${module.modvars.env}_nat"
+  }
+}	
+
 resource "aws_route_table" "resrtblpvt" {
-  vpc_id = aws_vpc.resvpc.id
+#  vpc_id = aws_vpc.resvpc.id
+  vpc_id = var.vpcid
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_nat_gateway.resnat.resig.id
-  }
+    gateway_id = aws_nat_gateway.resnat.id
+  } 
 
-  route {
+/*  route {
     ipv6_cidr_block = "::/0"
-    gateway_id = aws_nat_gateway.resnat.resig.id
-  }
+    gateway_id = aws_nat_gateway.resnat.id
+  } */
 
-  tags = {
+/*  tags = {
     Name = "${module.modvars.env}_rtblpvt"
   }
 }
 
-resource "aws_route_table_association" "public" {
+resource "aws_route_table_association" "resrtasspvt" {
   count = "${length(var.pvtsubnets)}"
 
   subnet_id      = "${element(aws_subnet.respvtsubs.*.id, count.index)}"
-  route_table_id = "${aws_route_table.resrtbl.id}"
+  route_table_id = "${aws_route_table.resrtblpvt.id}"
 }
-
-resource "aws_security_group" "ressgpvt" {
-  name        = "${module.modvars.env}_pvtsg"
-  description = "sg for pvt instances"
+*/
+resource "aws_security_group" "ressgmvn" {
+  name        = "${module.modvars.env}_mvnsg"
+  description = "sg for mvn instances"
 #  vpc_id      = aws_vpc.resvpc.id
   vpc_id      = var.vpcid
 
@@ -94,12 +110,10 @@ resource "aws_security_group" "ressgpvt" {
   }
 }
 
-output outsgpvtid{
-    value= "${aws_security_group.ressgpvt.id}"
+output outsgmvnid{
+    value= "${aws_security_group.ressgmvn.id}"
 }
-
+/*
 output outsubnet{
     value= "${aws_subnet.respvtsubs[0].id}"
-}
-
-
+} */

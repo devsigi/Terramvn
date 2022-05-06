@@ -7,12 +7,15 @@ provider "aws"{
 }
 
 module "modsg" {
+  vpcid = var.vpcid
+#  sgid = var.sgid
+#  subnetid = var.subnetid
   source = "./dirsg"
 }
 
 module "modec2"{
-  sgid = "${module.modsg.outsgpvtid}"
-  subnetid = "${module.modsg.outsubnet}"  
+  sgid = "${module.modsg.outsgmvnid}"
+  subnetid = var.subnetid
   amiid = var.amiid
   keyName = var.keyName
   source = "./direc2"
