@@ -3,8 +3,8 @@ module "modvars"{
 }
 
 variable vpcid{}
-#variable sgid{}
-variable subnetid{}
+variable sgid{}
+#variable subnetid{}
 
 /* variable "pubsubnets" {
   description = "Subnet CIDRs for public subnets (length must match configured availability_zones)"
@@ -99,6 +99,7 @@ resource "aws_security_group" "ressgmvn" {
     protocol         = "tcp"
     security_groups	 = ["${var.sgid}",]
 #    security_groups = ["${aws_security_group.ressg.id}",]
+    cidr_blocks      = ["76.186.132.59/32"]
   }
   
   egress {

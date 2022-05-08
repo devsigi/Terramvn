@@ -8,7 +8,7 @@ provider "aws"{
 
 module "modsg" {
   vpcid = var.vpcid
-#  sgid = var.sgid
+  sgid = var.sgid
 #  subnetid = var.subnetid
   source = "./dirsg"
 }
